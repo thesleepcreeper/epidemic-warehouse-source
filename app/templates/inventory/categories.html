@@ -1,0 +1,71 @@
+{% extends "layout/base.html" %}
+{% block title %}分类管理{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-tags"></i> 分类列表</h5>
+        <a href="{{ url_for('inventory.category_create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> 新增分类
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>分类名称</th>
+                        <th>上级分类</th>
+                        <th>排序</th>
+                        <th>物资数量</th>
+                        <th>备注</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in categories %}
+                    <tr>
+                        <td>
+                            <span style="padding-left: {{ c.full_name.count('>') * 20 }}px;">
+                                {% if c.full_name.count('>') > 0 %}
+                                <i class="bi bi-arrow-return-right text-muted me-1"></i>
+                                {% endif %}
+                                {{ c.name }}
+                            </span>
+                        </td>
+                        <td>{{ c.parent.full_name if c.parent else '-' }}</td>
+                        <td>{{ c.sort_order }}</td>
+                        <td>{{ c.items.count() }}</td>
+                        <td>{{ c.remark or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('inventory.category_edit', id=c.id) }}" class="btn btn-sm btn-outline-primary" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('inventory.category_delete', id=c.id) }}" class="d-inline" onsubmit="return confirm('确定删除分类「{{ c.name }}」吗？删除后不可恢复。')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="删除">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">暂无分类数据</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center">
+                {% for p in range(1, pagination.pages + 1) %}
+                <li class="page-item {{ 'active' if p == pagination.page }}">
+                    <a class="page-link" href="{{ url_for('inventory.categories', page=p) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

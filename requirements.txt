@@ -1,0 +1,11 @@
+Flask>=3.0
+Flask-SQLAlchemy>=3.0
+Flask-Login>=0.6
+Flask-WTF>=1.0
+WTForms>=3.0
+SQLAlchemy>=2.0
+Werkzeug>=3.0
+pandas>=2.0
+openpyxl>=3.0
+bcrypt>=4.0
+click>=8.0

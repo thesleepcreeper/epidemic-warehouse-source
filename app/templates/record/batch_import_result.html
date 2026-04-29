@@ -1,0 +1,63 @@
+{% extends "layout/base.html" %}
+{% block title %}导入结果{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-circle text-success"></i>
+                    {{ '入库' if import_type=='inbound' else '出库' }}批量导入结果
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- 统计 -->
+                <div class="row text-center mb-4">
+                    <div class="col-4">
+                        <h3 class="fw-bold">{{ total }}</h3>
+                        <small class="text-muted">总行数</small>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="fw-bold text-success">{{ success }}</h3>
+                        <small class="text-muted">成功</small>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="fw-bold text-danger">{{ errors|length }}</h3>
+                        <small class="text-muted">失败</small>
+                    </div>
+                </div>
+
+                {% if errors %}
+                <div class="alert alert-danger">
+                    <h6><i class="bi bi-x-circle"></i> 失败详情（共 {{ errors|length }} 条）</h6>
+                    <ul class="mb-0 small" style="max-height:300px;overflow-y:auto;">
+                        {% for e in errors %}
+                        <li>{{ e }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if success > 0 %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i>
+                    成功导入 {{ success }} 条{{ '入库' if import_type=='inbound' else '出库申请' }}记录。
+                    {% if import_type == 'outbound' %}
+                    出库申请为<strong>待审批</strong>状态，请到"待审批"页面处理。
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ url_for('record.inbound_batch_import' if import_type=='inbound' else 'record.outbound_batch_import') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-upload"></i> 继续导入
+                    </a>
+                    <a href="{{ url_for('record.inbounds' if import_type=='inbound' else 'record.outbounds') }}" class="btn btn-primary">
+                        <i class="bi bi-list"></i> 查看记录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

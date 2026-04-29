@@ -1,0 +1,139 @@
+{% extends "layout/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-box-arrow-up"></i> {{ title }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.material_id.label(class="form-label") }}
+                            {{ form.material_id(class="form-select" + (" is-invalid" if form.material_id.errors else ""), id="material_select") }}
+                            {% for e in form.material_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            {{ form.quantity.label(class="form-label") }}
+                            {{ form.quantity(class="form-control" + (" is-invalid" if form.quantity.errors else ""), type="number", min=1, id="out_quantity") }}
+                            {% for e in form.quantity.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            {{ form.recipient.label(class="form-label") }}
+                            {{ form.recipient(class="form-control" + (" is-invalid" if form.recipient.errors else "")) }}
+                            {% for e in form.recipient.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- 库存信息提示 -->
+                    <div id="stock_info" class="alert alert-info d-none mb-3">
+                        <i class="bi bi-info-circle"></i>
+                        当前库存: <strong id="stock_quantity">0</strong>
+                        &nbsp;&nbsp;|&nbsp;&nbsp; 预警值: <strong id="warning_quantity">0</strong>
+                        &nbsp;&nbsp;|&nbsp;&nbsp; 状态: <span id="stock_status_badge"><span class="badge bg-secondary">-</span></span>
+                        &nbsp;&nbsp;|&nbsp;&nbsp; <span id="stock_valid_msg" class="text-success d-none"><i class="bi bi-check-circle"></i> 库存充足</span>
+                        <span id="stock_invalid_msg" class="text-danger d-none"><i class="bi bi-exclamation-circle"></i> 库存不足！</span>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.purpose.label(class="form-label") }}
+                        {{ form.purpose(class="form-control", rows=2) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.batch_no.label(class="form-label") }}
+                            {{ form.batch_no(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.remark.label(class="form-label") }}
+                        {{ form.remark(class="form-control", rows=2) }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('record.outbounds') }}" class="btn btn-secondary">返回</a>
+                        {{ form.submit(class="btn btn-warning") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var materialSelect = document.getElementById('material_select');
+    var quantityInput = document.getElementById('out_quantity');
+    var stockInfo = document.getElementById('stock_info');
+    var stockQuantity = document.getElementById('stock_quantity');
+    var warningQty = document.getElementById('warning_quantity');
+    var stockBadge = document.getElementById('stock_status_badge');
+    var validMsg = document.getElementById('stock_valid_msg');
+    var invalidMsg = document.getElementById('stock_invalid_msg');
+
+    var currentStock = 0;
+
+    function checkQuantity() {
+        var qty = parseInt(quantityInput.value) || 0;
+        if (currentStock > 0 && qty > 0) {
+            if (qty <= currentStock) {
+                validMsg.classList.remove('d-none');
+                invalidMsg.classList.add('d-none');
+            } else {
+                validMsg.classList.add('d-none');
+                invalidMsg.classList.remove('d-none');
+            }
+        } else {
+            validMsg.classList.add('d-none');
+            invalidMsg.classList.add('d-none');
+        }
+    }
+
+    if (materialSelect) {
+        materialSelect.addEventListener('change', function() {
+            var materialId = this.value;
+            if (materialId && materialId != '0') {
+                fetch('/inventory/api/material/' + materialId + '/stock')
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(data) {
+                        if (data.success) {
+                            currentStock = data.quantity;
+                            stockQuantity.textContent = currentStock + ' ' + (data.unit || '');
+                            warningQty.textContent = data.warning_quantity || '0';
+                            var statusColors = { 'normal': 'success', 'warning': 'warning', 'emergency': 'danger', 'overstock': 'info' };
+                            var statusNames = { 'normal': '正常', 'warning': '预警', 'emergency': '紧急', 'overstock': '超储' };
+                            var color = statusColors[data.stock_status] || 'secondary';
+                            var name = statusNames[data.stock_status] || '未知';
+                            stockBadge.innerHTML = '<span class="badge bg-' + color + '">' + name + '</span>';
+                            stockInfo.classList.remove('d-none');
+                            checkQuantity();
+                        } else {
+                            stockInfo.classList.add('d-none');
+                            currentStock = 0;
+                        }
+                    })
+                    .catch(function() {
+                        stockInfo.classList.add('d-none');
+                        currentStock = 0;
+                    });
+            } else {
+                stockInfo.classList.add('d-none');
+                currentStock = 0;
+            }
+        });
+
+        if (quantityInput) {
+            quantityInput.addEventListener('input', checkQuantity);
+        }
+    }
+});
+</script>
+{% endblock %}

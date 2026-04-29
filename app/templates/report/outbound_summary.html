@@ -1,0 +1,68 @@
+{% extends "layout/base.html" %}
+{% block title %}出库统计 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}出库统计{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-bar-chart-down"></i> 出库统计</h5>
+        <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm print-btn">
+            <i class="bi bi-printer"></i> 打印
+        </button>
+        <div class="btn-group btn-group-sm">
+            <a href="{{ url_for('report.outbound_summary', freq='D') }}" class="btn {{ 'btn-primary' if freq=='D' else 'btn-outline-primary' }}">按日</button>
+            <a href="{{ url_for('report.outbound_summary', freq='M') }}" class="btn {{ 'btn-primary' if freq=='M' else 'btn-outline-primary' }}">按月</button>
+            <a href="{{ url_for('report.outbound_summary', freq='Y') }}" class="btn {{ 'btn-primary' if freq=='Y' else 'btn-outline-primary' }}">按年</button>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if freq == 'D' %}
+        <p class="text-muted small mb-3"><i class="bi bi-info-circle"></i> 显示最近30天按日统计</p>
+        {% elif freq == 'M' %}
+        <p class="text-muted small mb-3"><i class="bi bi-info-circle"></i> 显示最近12个月按月统计</p>
+        {% else %}
+        <p class="text-muted small mb-3"><i class="bi bi-info-circle"></i> 显示所有年份按年统计</p>
+        {% endif %}
+
+        {% if table_data %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>
+                            {% if freq == 'D' %}日期
+                            {% elif freq == 'M' %}月份
+                            {% else %}年份
+                            {% endif %}
+                        </th>
+                        <th>出库笔数</th>
+                        <th>出库总量</th>
+                        <th>出库总金额(元)</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr>
+                        <td class="fw-bold">{{ row['日期'] if freq=='D' else row['月份'] if freq=='M' else row['年份'] }}</td>
+                        <td>{{ row['单据数量'] }}</td>
+                        <td class="fw-bold">{{ row['总数量'] }}</td>
+                        <td>{{ "%.2f"|format(row['总金额(元)']) }}</td>
+                        <td>
+                            <a href="{{ url_for('record.outbounds', date_from=row['日期'] if freq=='D' else '', date_to=row['日期'] if freq=='D' else '') }}" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-eye"></i> 详情
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            暂无出库统计数据
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

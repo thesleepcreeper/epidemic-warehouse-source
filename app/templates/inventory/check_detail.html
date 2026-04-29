@@ -1,0 +1,75 @@
+{% extends "layout/base.html" %}
+{% block title %}盘点详情{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> 盘点详情</h5>
+                <a href="{{ url_for('inventory.checks') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> 返回列表
+                </a>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th class="w-25 bg-light">盘点单号</th>
+                        <td><code>{{ check.check_no }}</code></td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">物资名称</th>
+                        <td>{{ check.material.name if check.material else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">物资编码</th>
+                        <td><code>{{ check.material.code if check.material else '-' }}</code></td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">规格型号</th>
+                        <td>{{ check.material.spec if check.material else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">单位</th>
+                        <td>{{ check.material.unit if check.material else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">账面数量</th>
+                        <td>{{ check.book_quantity }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">实际数量</th>
+                        <td>{{ check.actual_quantity }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">差异</th>
+                        <td>
+                            {% if check.difference > 0 %}
+                            <span class="text-danger fw-bold fs-5">+{{ check.difference }}</span>
+                            <small class="text-muted">（盘盈）</small>
+                            {% elif check.difference < 0 %}
+                            <span class="text-success fw-bold fs-5">{{ check.difference }}</span>
+                            <small class="text-muted">（盘亏）</small>
+                            {% else %}
+                            <span class="text-muted fw-bold fs-5">0</span>
+                            <small class="text-muted">（无差异）</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">盘点人</th>
+                        <td>{{ check.operator.real_name if check.operator else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">盘点时间</th>
+                        <td>{{ check.created_at.strftime('%Y-%m-%d %H:%M:%S') if check.created_at else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">备注</th>
+                        <td>{{ check.remark or '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "layout/base.html" %}
+{% block title %}物资列表 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}物资列表{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-box-seam"></i> 物资列表</h5>
+        <div>
+            <a href="{{ url_for('inventory.material_create') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> 新增物资
+            </a>
+            <a href="{{ url_for('report.stock_export') }}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-download"></i> 导出Excel
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- 搜索 -->
+        <form method="GET" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control" placeholder="名称/编码/规格" value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-2">
+                <select name="category_id" class="form-select">
+                    <option value="">全部分类</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}" {% if request.args.get('category_id','')|string == c.id|string %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="stock_status" class="form-select">
+                    <option value="">全部库存</option>
+                    <option value="normal" {% if request.args.get('stock_status')=='normal' %}selected{% endif %}>正常</option>
+                    <option value="warning" {% if request.args.get('stock_status')=='warning' %}selected{% endif %}>预警</option>
+                    <option value="emergency" {% if request.args.get('stock_status')=='emergency' %}selected{% endif %}>紧急缺货</option>
+                    <option value="overstock" {% if request.args.get('stock_status')=='overstock' %}selected{% endif %}>超储</option>
+                </select>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-outline-primary w-100">搜索</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>编码</th>
+                        <th>物资名称</th>
+                        <th>分类</th>
+                        <th>规格</th>
+                        <th>单位</th>
+                        <th>当前库存</th>
+                        <th>预警值</th>
+                        <th>库存状态</th>
+                        <th>临期状态</th>
+                        <th>存放位置</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in materials %}
+                    <tr>
+                        <td><code>{{ m.code or '-' }}</code></td>
+                        <td><a href="{{ url_for('inventory.material_detail', id=m.id) }}">{{ m.name }}</a></td>
+                        <td>{{ m.category.full_name if m.category else '-' }}</td>
+                        <td>{{ m.spec or '-' }}</td>
+                        <td>{{ m.unit }}</td>
+                        <td class="fw-bold">{{ m.current_quantity }}</td>
+                        <td>{{ m.warning_quantity if m.warning_quantity > 0 else '-' }}</td>
+                        <td><span class="badge bg-{{ m.stock_status_color }}">{{ m.stock_status_name }}</span></td>
+                        <td>
+                            {% if m.newest_expiry_date and m.warning_days > 0 %}
+                                <span class="badge bg-{{ m.expiry_status_color }}">{{ m.expiry_status_name }}</span>
+                                <small class="text-muted d-block">{{ m.newest_expiry_date }}</small>
+                            {% else %}
+                                <span class="badge bg-secondary">未设置</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ m.storage_location or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('inventory.material_detail', id=m.id) }}" class="btn btn-sm btn-outline-info" title="详情">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('inventory.material_edit', id=m.id) }}" class="btn btn-sm btn-outline-primary" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('inventory.material_toggle', id=m.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if m.is_active else 'success' }}"
+                                        onclick="return confirm('确定{{ '禁用' if m.is_active else '启用' }}物资 {{ m.name }} 吗？')">
+                                    <i class="bi bi-{{ 'pause-circle' if m.is_active else 'play-circle' }}"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="10" class="text-center text-muted py-4">暂无物资数据</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center">
+                {% for p in range(1, pagination.pages+1) %}
+                <li class="page-item {{ 'active' if p==pagination.page }}">
+                    <a class="page-link" href="{{ url_for('inventory.materials', page=p, search=request.args.get('search',''), category_id=request.args.get('category_id',''), stock_status=request.args.get('stock_status','')) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "layout/base.html" %}
+{% block title %}{{ material.name }} - 物资详情{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">基本信息</h5></div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr><th class="w-35">物资名称</th><td>{{ material.name }}</td></tr>
+                    <tr><th>编码</th><td><code>{{ material.code or '-' }}</code></td></tr>
+                    <tr><th>规格型号</th><td>{{ material.spec or '-' }}</td></tr>
+                    <tr><th>单位</th><td>{{ material.unit }}</td></tr>
+                    <tr><th>分类</th><td>{{ material.category.full_name if material.category else '-' }}</td></tr>
+                    <tr><th>供应商</th><td>{{ material.supplier.name if material.supplier else '-' }}</td></tr>
+                    <tr><th>存放位置</th><td>{{ material.storage_location or '-' }}</td></tr>
+                    <tr><th>单价</th><td>{{ material.unit_price }} 元</td></tr>
+                    <tr><th>保质期</th><td>{{ material.shelf_life_days }} 天{% if material.shelf_life_days %}{% endif %}</td></tr>
+                    <tr><th>临期预警天数</th><td>{{ material.warning_days }} 天{% if material.warning_days > 0 %}<small class="text-muted">（到期前预警）</small>{% else %}<small class="text-muted">（未启用）</small>{% endif %}</td></tr>
+                    <tr><th>有效期至</th><td>
+                        {% if material.newest_expiry_date %}
+                            {{ material.newest_expiry_date }}
+                            <span class="badge bg-{{ material.expiry_status_color }}">{{ material.expiry_status_name }}</span>
+                            {% if material.days_to_expiry is not none %}
+                                <small class="text-muted">（{{ '已过期' if material.days_to_expiry < 0 else '还剩' + material.days_to_expiry|string + '天' }}）</small>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">未记录</span>
+                        {% endif %}
+                    </td></tr>
+                    <tr><th>消耗品</th><td>{{ '是' if material.is_consumable else '否' }}</td></tr>
+                    <tr><th>创建时间</th><td>{{ material.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+                </table>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('inventory.material_edit', id=material.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> 编辑
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header"><h5 class="mb-0">库存信息</h5></div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    <div class="col-4">
+                        <h2 class="fw-bold">{{ material.current_quantity }}</h2>
+                        <small class="text-muted">当前库存 ({{ material.unit }})</small>
+                    </div>
+                    <div class="col-4">
+                        <h2 class="fw-bold">{{ material.warning_quantity }}</h2>
+                        <small class="text-muted">预警库存 ({{ material.unit }})</small>
+                    </div>
+                    <div class="col-4">
+                        <h2 class="fw-bold text-{{ material.stock_status_color }}">{{ material.stock_status_name }}</h2>
+                        <small class="text-muted">库存状态</small>
+                    </div>
+                </div>
+                {% if material.stock_status in ('warning', 'emergency') %}
+                <div class="alert alert-{{ material.stock_status_color }} text-center">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% if material.stock_status == 'emergency' %}
+                    紧急缺货！请立即补货！
+                    {% else %}
+                    库存低于预警值，请及时补货！
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- 临期预警 -->
+                {% if material.newest_expiry_date and material.warning_days > 0 %}
+                <div class="mt-3 pt-3 border-top">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h5 class="fw-bold">{{ material.newest_expiry_date }}</h5>
+                            <small class="text-muted">有效期至</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="fw-bold text-{{ material.expiry_status_color }}">
+                                {% if material.days_to_expiry is not none %}
+                                    {% if material.days_to_expiry < 0 %}
+                                        已过期{{ (-material.days_to_expiry) }}天
+                                    {% else %}
+                                        {{ material.days_to_expiry }}天
+                                    {% endif %}
+                                {% else %}-{% endif %}
+                            </h5>
+                            <small class="text-muted">距离到期</small>
+                        </div>
+                        <div class="col-4">
+                            <span class="badge bg-{{ material.expiry_status_color }}" style="font-size:1rem;">
+                                {{ material.expiry_status_name }}
+                            </span>
+                            <small class="text-muted d-block">临期状态</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 出入库记录 -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between">
+                <span><i class="bi bi-clock-history"></i> 最近记录</span>
+            </div>
+            <div class="card-body p-0">
+                <ul class="nav nav-tabs" id="recordTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#inbound">入库记录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#outbound">出库记录</a>
+                    </li>
+                </ul>
+                <div class="tab-content p-3">
+                    <div class="tab-pane active" id="inbound">
+                        {% if inbounds %}
+                        <table class="table table-sm">
+                            <thead><tr><th>单号</th><th>数量</th><th>供应商</th><th>批次</th><th>操作人</th><th>时间</th></tr></thead>
+                            <tbody>
+                                {% for r in inbounds %}
+                                <tr>
+                                    <td><code>{{ r.order_no }}</code></td>
+                                    <td>{{ r.quantity }}</td>
+                                    <td>{{ r.supplier.name if r.supplier else '-' }}</td>
+                                    <td>{{ r.batch_no or '-' }}</td>
+                                    <td>{{ r.operator.real_name }}</td>
+                                    <td><small>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}<p class="text-muted text-center mb-0">暂无入库记录</p>{% endif %}
+                    </div>
+                    <div class="tab-pane" id="outbound">
+                        {% if outbounds %}
+                        <table class="table table-sm">
+                            <thead><tr><th>单号</th><th>数量</th><th>领用单位</th><th>状态</th><th>申请人</th><th>时间</th></tr></thead>
+                            <tbody>
+                                {% for r in outbounds %}
+                                <tr>
+                                    <td><code>{{ r.order_no }}</code></td>
+                                    <td>{{ r.quantity }}</td>
+                                    <td>{{ r.recipient }}</td>
+                                    <td><span class="badge bg-{{ r.status_color }}">{{ r.status_name }}</span></td>
+                                    <td>{{ r.applicant.real_name }}</td>
+                                    <td><small>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}<p class="text-muted text-center mb-0">暂无出库记录</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

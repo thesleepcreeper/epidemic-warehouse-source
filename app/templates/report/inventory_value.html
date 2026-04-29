@@ -1,0 +1,93 @@
+{% extends "layout/base.html" %}
+{% block title %}库存价值统计 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}库存价值统计{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-cash-stack"></i> 库存价值统计</h5>
+        <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm print-btn">
+            <i class="bi bi-printer"></i> 打印
+        </button>
+    </div>
+    <div class="card-body">
+        {% if table_data %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>分类名称</th>
+                        <th>物资种类</th>
+                        <th>库存总量</th>
+                        <th>库存总值(元)</th>
+                        <th>占比</th>
+                        <th>进度条</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr class="{{ 'table-primary fw-bold' if row['分类'] == '合计' else '' }}">
+                        <td>{{ row['分类'] }}</td>
+                        <td>{{ row['物资种类'] }}</td>
+                        <td>{{ row['总库存数量'] }}</td>
+                        <td>{{ "%.2f"|format(row['总库存价值(元)']) }}</td>
+                        <td>{{ "%.2f"|format(row['占比(%)']) }}%</td>
+                        <td>
+                            {% if row['分类'] != '合计' %}
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar progress-bar-striped
+                                    {% if row['占比(%)'] >= 40 %}bg-danger
+                                    {% elif row['占比(%)'] >= 20 %}bg-warning text-dark
+                                    {% else %}bg-success{% endif %}"
+                                    role="progressbar"
+                                    style="width: {{ row['占比(%)'] }}%; min-width: 2em;"
+                                    aria-valuenow="{{ row['占比(%)'] }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ "%.1f"|format(row['占比(%)']) }}%
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 汇总卡片 -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card border-primary text-center">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">分类数量</h6>
+                        <h3 class="fw-bold text-primary">{{ table_data|length - 1 }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-success text-center">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">库存总价值</h6>
+                        <h3 class="fw-bold text-success">{{ "%.2f"|format(total_value) }} 元</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-info text-center">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted">数据更新时间</h6>
+                        <h6 class="fw-bold" id="update-time"></h6>
+                        <script>document.getElementById('update-time').textContent = new Date().toLocaleString('zh-CN');</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-pie-chart fs-1 d-block mb-2"></i>
+            暂无库存价值数据
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

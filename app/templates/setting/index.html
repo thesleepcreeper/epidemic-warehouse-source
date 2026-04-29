@@ -1,0 +1,55 @@
+{% extends "layout/base.html" %}
+{% block title %}系统设置{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> 系统设置</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">单位全称 <span class="text-danger">*</span></label>
+                        <input type="text" name="unit_name" class="form-control" value="{{ unit_name }}"
+                               placeholder="例：大理州动物疫病预防控制中心" required>
+                        <small class="text-muted">将显示在打印单据的表头</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">单位简称</label>
+                        <input type="text" name="unit_short" class="form-control" value="{{ unit_short }}"
+                               placeholder="例：大理州疫控中心">
+                        <small class="text-muted">用于导航栏和页面标题简短显示，留空则取全称前20字</small>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">返回首页</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> 保存设置
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 打印预览说明 -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> 打印效果说明</h6>
+            </div>
+            <div class="card-body small">
+                <p class="mb-1">设置单位名称后，在以下页面打印时会在顶部显示单位名称：</p>
+                <ul class="mb-0">
+                    <li>库存总表</li>
+                    <li>库存预警</li>
+                    <li>入库记录</li>
+                    <li>出库记录</li>
+                    <li>入库统计</li>
+                    <li>出库统计</li>
+                    <li>库存价值统计</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

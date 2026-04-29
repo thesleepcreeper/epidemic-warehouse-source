@@ -1,0 +1,86 @@
+{% extends "layout/base.html" %}
+{% block title %}出库详情 - {{ record.order_no }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> 出库详情</h5>
+                <div>
+                    {% if record.status == 'pending' and current_user.has_permission('approve') %}
+                    <a href="{{ url_for('record.outbound_approve', id=record.id) }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-check-circle"></i> 审批
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('record.outbounds') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th class="w-25 bg-light">出库单号</th>
+                        <td><code>{{ record.order_no }}</code></td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">状态</th>
+                        <td><span class="badge bg-{{ record.status_color }} fs-6">{{ record.status_name }}</span></td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">物资名称</th>
+                        <td>
+                            <a href="{{ url_for('inventory.material_detail', id=record.material_id) }}">
+                                {{ record.material.name }}
+                            </a>
+                            <small class="text-muted">({{ record.material.spec or '-' }})</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">出库数量</th>
+                        <td class="fw-bold">{{ record.quantity }} {{ record.material.unit }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">领用单位/人</th>
+                        <td>{{ record.recipient }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">用途说明</th>
+                        <td>{{ record.purpose or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">批次号</th>
+                        <td>{{ record.batch_no or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">申请人</th>
+                        <td>{{ record.applicant.real_name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">申请时间</th>
+                        <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% if record.status == 'approved' or record.status == 'rejected' %}
+                    <tr>
+                        <th class="bg-light">审批人</th>
+                        <td>{{ record.approver.real_name if record.approver else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">审批意见</th>
+                        <td>{{ record.approve_remark or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">审批时间</th>
+                        <td>{{ record.approved_at.strftime('%Y-%m-%d %H:%M:%S') if record.approved_at else '-' }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th class="bg-light">备注</th>
+                        <td>{{ record.remark or '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

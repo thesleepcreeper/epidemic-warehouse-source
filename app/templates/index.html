@@ -1,0 +1,263 @@
+{% extends "layout/base.html" %}
+{% block title %}首页 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}系统概览{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h4 class="border-bottom pb-2">
+            <i class="bi bi-speedometer2"></i> 系统概览
+        </h4>
+    </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-primary h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-primary">
+                    <i class="bi bi-box-seam"></i> 物资总数
+                </h5>
+                <p class="display-6 fw-bold text-primary">{{ total_materials }}</p>
+                <small class="text-muted">共 {{ total_categories }} 个分类</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-warning h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-warning">
+                    <i class="bi bi-exclamation-triangle"></i> 库存预警
+                </h5>
+                <p class="display-6 fw-bold text-warning">{{ warning_count }}</p>
+                <a href="{{ url_for('report.stock_warnings') }}" class="small">查看详情</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-danger h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-danger">
+                    <i class="bi bi-bell-fill"></i> 紧急缺货
+                </h5>
+                <p class="display-6 fw-bold text-danger">{{ emergency_count }}</p>
+                <small class="text-muted">需立即补货</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-warning h-100" style="border-color: #fd7e14 !important;">
+            <div class="card-body text-center">
+                <h5 class="card-title" style="color:#fd7e14;">
+                    <i class="bi bi-clock"></i> 临期预警
+                </h5>
+                <p class="display-6 fw-bold" style="color:#fd7e14;">{{ expiring_count }}</p>
+                {% if expired_count > 0 %}
+                <small class="text-danger fw-bold">（含 {{ expired_count }} 项已过期！）</small>
+                {% else %}
+                <small class="text-muted">即将到期物资</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-info h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-info">
+                    <i class="bi bi-clock-history"></i> 待审批
+                </h5>
+                <p class="display-6 fw-bold text-info">{{ pending_outbounds }}</p>
+                <a href="{{ url_for('record.pending_approvals') }}" class="small">去处理</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 月度统计 -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-calendar3"></i> 本月动态
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-around text-center">
+                    <div>
+                        <h3 class="text-success">{{ monthly_inbound }}</h3>
+                        <small>入库次数</small>
+                    </div>
+                    <div>
+                        <h3 class="text-danger">{{ monthly_outbound }}</h3>
+                        <small>出库次数</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预警物资 + 临期预警 -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header p-0">
+                <ul class="nav nav-tabs card-header-tabs m-0 border-0" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active py-2 px-3" data-bs-toggle="tab" href="#tab-stock-warn">
+                            <i class="bi bi-exclamation-circle"></i> 库存预警
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link py-2 px-3" data-bs-toggle="tab" href="#tab-expiry-warn">
+                            <i class="bi bi-clock"></i> 临期预警
+                            {% if expiring_count > 0 or expired_count > 0 %}
+                            <span class="badge bg-warning text-dark">{{ expiring_count + expired_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body p-0 tab-content">
+                <!-- 库存预警标签页 -->
+                <div class="tab-pane active" id="tab-stock-warn">
+                    {% if warning_materials %}
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>物资名称</th><th>库存</th><th>预警值</th><th>状态</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for m in warning_materials %}
+                            <tr>
+                                <td><a href="{{ url_for('inventory.material_detail', id=m.id) }}">{{ m.name }}</a></td>
+                                <td class="fw-bold">{{ m.current_quantity }}{{ m.unit }}</td>
+                                <td>{{ m.warning_quantity }}</td>
+                                <td><span class="badge bg-{{ m.stock_status_color }}">{{ m.stock_status_name }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">所有物资库存正常</div>
+                    {% endif %}
+                </div>
+                <!-- 临期预警标签页 -->
+                <div class="tab-pane" id="tab-expiry-warn">
+                    {% if expiring_materials or expired_materials %}
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>物资名称</th><th>有效期至</th><th>剩余天数</th><th>状态</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for m in expiring_materials %}
+                            <tr>
+                                <td><a href="{{ url_for('inventory.material_detail', id=m.id) }}">{{ m.name }}</a></td>
+                                <td>{{ m.newest_expiry_date }}</td>
+                                <td class="fw-bold text-warning">{{ m.days_to_expiry }}天</td>
+                                <td><span class="badge bg-warning">临期预警</span></td>
+                            </tr>
+                            {% endfor %}
+                            {% for m in expired_materials %}
+                            <tr class="table-danger">
+                                <td><a href="{{ url_for('inventory.material_detail', id=m.id) }}">{{ m.name }}</a></td>
+                                <td>{{ m.newest_expiry_date }}</td>
+                                <td class="fw-bold text-danger">{{ m.days_to_expiry }}天</td>
+                                <td><span class="badge bg-danger">已过期</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">所有物资均在有效期内</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速操作 -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-lightning"></i> 快速操作
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('record.inbound_create') }}" class="btn btn-success">
+                        <i class="bi bi-box-arrow-in-down"></i> 新增入库
+                    </a>
+                    <a href="{{ url_for('record.outbound_create') }}" class="btn btn-warning">
+                        <i class="bi bi-box-arrow-up"></i> 出库申请
+                    </a>
+                    <a href="{{ url_for('inventory.material_create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> 新增物资
+                    </a>
+                    <a href="{{ url_for('inventory.check_create') }}" class="btn btn-info">
+                        <i class="bi bi-clipboard-check"></i> 库存盘点
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近记录 -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <span><i class="bi bi-download text-success"></i> 最近入库</span>
+                <a href="{{ url_for('record.inbounds') }}" class="small">查看全部</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_inbounds %}
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>单号</th><th>物资</th><th>数量</th><th>时间</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recent_inbounds %}
+                        <tr>
+                            <td><code>{{ r.order_no }}</code></td>
+                            <td>{{ r.material.name }}</td>
+                            <td>{{ r.quantity }}{{ r.material.unit }}</td>
+                            <td><small>{{ r.created_at.strftime('%m-%d %H:%M') }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-3 text-center text-muted">暂无入库记录</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <span><i class="bi bi-upload text-danger"></i> 最近出库</span>
+                <a href="{{ url_for('record.outbounds') }}" class="small">查看全部</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_outbounds %}
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr><th>单号</th><th>物资</th><th>数量</th><th>状态</th><th>时间</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recent_outbounds %}
+                        <tr>
+                            <td><code>{{ r.order_no }}</code></td>
+                            <td>{{ r.material.name }}</td>
+                            <td>{{ r.quantity }}{{ r.material.unit }}</td>
+                            <td><span class="badge bg-{{ r.status_color }}">{{ r.status_name }}</span></td>
+                            <td><small>{{ r.created_at.strftime('%m-%d %H:%M') }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-3 text-center text-muted">暂无出库记录</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

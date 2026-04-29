@@ -1,0 +1,66 @@
+{% extends "layout/base.html" %}
+{% block title %}{{ '入库' if import_type=='inbound' else '出库' }}批量导入{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-upload"></i> {{ '入库' if import_type=='inbound' else '出库' }}批量导入</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> 导入说明</h6>
+                    <ol class="mb-0">
+                        <li>准备 Excel 文件（.xlsx 或 .xls），表格需包含表头行</li>
+                        {% if import_type == 'inbound' %}
+                        <li><strong>必须列：</strong>物资名称（或编码）、数量</li>
+                        <li><strong>可选列：</strong>单价、供应商、批次号、有效期至</li>
+                        <li>物资名称支持按名称或编码匹配系统中已存在的物资</li>
+                        {% else %}
+                        <li><strong>必须列：</strong>物资名称（或编码）、数量、领用单位</li>
+                        <li><strong>可选列：</strong>用途</li>
+                        <li>物资名称支持按名称或编码匹配系统中已存在的物资</li>
+                        <li>导入后生成<strong>待审批</strong>的出库申请，需管理员审批通过</li>
+                        {% endif %}
+                        <li>支持的表头名称：物资名称/名称、数量/入库数量、单价/入库单价 等</li>
+                    </ol>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">选择 Excel 文件</label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('record.inbounds' if import_type=='inbound' else 'record.outbounds') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> 返回
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> 开始导入
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 出入库列表页也有导出按钮 -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-download"></i> 快速导出</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-2">也可以先导出当前记录作为导入模板：</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('record.inbound_export' if import_type=='inbound' else 'record.outbound_export') }}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-download"></i> 下载 Excel 导出
+                    </a>
+                    <a href="{{ url_for('record.inbound_export_template' if import_type=='inbound' else 'record.outbound_export_template') }}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-file-earmark"></i> 下载空白模板
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

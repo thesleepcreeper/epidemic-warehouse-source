@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}大理州动物防疫物资管理软件{% endblock %}</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+        <script>
+        // 打印函数最先定义，确保在任何其他 JS 前可用
+        function doPrint() { window.print(); }
+        </script>
+        <style>
+        /* ========== 打印样式 ========== */
+        @media print {
+            /* 隐藏所有不需要的元素 */
+            .navbar, footer, form, .d-grid, .no-print,
+            .alert, .card-header .btn, .card-header form,
+            .card-body .btn:not(.print-btn),
+            .pagination, .dropdown-menu, .navbar-toggler,
+            .nav-tabs .nav-link:not(.active),
+            .nav-item .badge { display: none !important; }
+
+            /* 但打印按钮自己应该隐藏（打印时不需要看到按钮） */
+            .print-btn { display: none !important; }
+
+            /* 页面基础设置 - A4纵向 */
+            @page {
+                margin: 1.5cm 1.2cm 1.2cm 1.2cm;
+                size: A4 portrait;
+            }
+            body {
+                background: white !important;
+                color: #000 !important;
+                font-size: 9pt;
+                font-family: "SimSun", "宋体", "STSong", serif;
+                line-height: 1.5;
+                margin: 0;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .container-fluid {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .row {
+                display: block !important;
+            }
+            [class*="col-"] {
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: none !important;
+                padding: 0 !important;
+            }
+
+            /* 打印表头：单位名称 + 报表名称 */
+            .print-header {
+                display: block !important;
+                text-align: center !important;
+                padding: 0 0 12px 0 !important;
+                margin-bottom: 10px !important;
+                border-bottom: 2px solid #333 !important;
+            }
+            .print-header .unit-name {
+                font-size: 16pt;
+                font-weight: bold;
+                letter-spacing: 2px;
+                margin: 0 0 4px 0;
+                line-height: 1.4;
+            }
+            .print-header .report-title {
+                font-size: 14pt;
+                font-weight: bold;
+                margin: 0;
+                line-height: 1.4;
+            }
+            .print-header .report-meta {
+                font-size: 8pt;
+                color: #555;
+                margin-top: 6px;
+            }
+            .print-header .report-meta span {
+                margin: 0 12px;
+            }
+
+            /* 卡片 */
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+                margin-bottom: 0 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .card-header {
+                display: none !important;
+            }
+            .card-body {
+                padding: 0 !important;
+            }
+
+            /* 表格 - 专业仓库风格 */
+            .table-responsive {
+                overflow: visible !important;
+                margin-top: 4px;
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                font-size: 8.5pt;
+            }
+            table thead {
+                display: table-header-group;
+            }
+            table th {
+                background: #e0e0e0 !important;
+                color: #000 !important;
+                font-weight: bold !important;
+                font-size: 8.5pt;
+                padding: 5px 4px !important;
+                border: 1px solid #666 !important;
+                text-align: center !important;
+                vertical-align: middle !important;
+            }
+            table td {
+                padding: 3px 4px !important;
+                border: 1px solid #999 !important;
+                color: #000 !important;
+                vertical-align: middle !important;
+            }
+
+            /* 表格条纹 */
+            table tbody tr:nth-child(even) {
+                background: #f5f5f5 !important;
+            }
+            table tbody tr:hover {
+                background: #eaeaea !important;
+            }
+
+            /* 徽章/标签转为纯文字 */
+            .badge {
+                border: 0.5px solid #666 !important;
+                color: #000 !important;
+                background: #fff !important;
+                font-weight: normal !important;
+                font-size: 7.5pt !important;
+                padding: 1px 4px !important;
+                border-radius: 0 !important;
+            }
+            .badge.bg-success { background: #d4edda !important; }
+            .badge.bg-warning { background: #fff3cd !important; }
+            .badge.bg-danger { background: #f8d7da !important; }
+            .badge.bg-info { background: #d1ecf1 !important; }
+            .badge.bg-secondary { background: #e2e3e5 !important; }
+
+            /* 链接 */
+            a { color: #000 !important; text-decoration: none !important; }
+
+            /* 代码 */
+            code { color: #000 !important; font-size: 7.5pt !important; background: none !important; }
+
+            /* 小字 */
+            small, .text-muted { font-size: 7.5pt !important; color: #555 !important; }
+
+            /* 高亮行 */
+            .table-danger td { background: #f8d7da !important; }
+            .table-warning td { background: #fff3cd !important; }
+            .table-success td { background: #d4edda !important; }
+
+            /* 页脚 */
+            .print-footer {
+                display: block !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 7.5pt;
+                color: #888;
+                border-top: 1px solid #ccc;
+                padding-top: 4px;
+            }
+        }
+        .print-btn { cursor: pointer; }
+        /* 打印表头默认隐藏，仅在打印时显示 */
+        .print-header { display: none; }
+        .print-footer { display: none; }
+        </style>
+        <script>
+        // 打印时加时间戳
+        document.addEventListener('DOMContentLoaded', function() {
+            var footer = document.querySelector('footer');
+            if (footer) footer.setAttribute('data-print-time', new Date().toLocaleString('zh-CN'));
+        });
+        </script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- 顶部导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="bi bi-shield-check"></i> {{ unit_short or '大理州动物防疫物资管理软件' }}
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
+                            <i class="bi bi-house-door"></i> 首页
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-box"></i> 物资管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('inventory.materials') }}">物资列表</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('inventory.material_create') }}">新增物资</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('inventory.categories') }}">分类管理</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('inventory.suppliers') }}">供应商管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-arrow-left-right"></i> 出入库
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('record.inbound_create') }}">新增入库</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.inbounds') }}">入库记录</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.inbound_batch_import') }}">批量导入</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.inbound_export') }}">导出Excel</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.outbound_create') }}">新增出库申请</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.outbounds') }}">出库记录</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.outbound_batch_import') }}">批量导入</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.outbound_export') }}">导出Excel</a></li>
+                            {% if current_user.has_permission('approve') %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('record.pending_approvals') }}">待审批
+                                {% set pending_count = pending_approvals_count or 0 %}
+                                {% if pending_count > 0 %}
+                                <span class="badge bg-danger rounded-pill">{{ pending_count }}</span>
+                                {% endif %}
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-bar-chart"></i> 报表统计
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('report.stock') }}">库存总表</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('report.stock_warnings') }}">库存预警</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('report.inbound_summary') }}">入库统计</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('report.outbound_summary') }}">出库统计</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('report.inventory_value') }}">库存价值</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('report.stock_export') }}">导出Excel</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('record.year_end_close') }}">
+                            <i class="bi bi-calendar-check"></i> 年度结转
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('inventory.check_create') }}">
+                            <i class="bi bi-clipboard-check"></i> 库存盘点
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> {{ current_user.real_name }}
+                            <span class="badge bg-light text-dark ms-1">{{ current_user.role_name }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                <i class="bi bi-key"></i> 修改密码
+                            </a></li>
+                            {% if current_user.has_permission('manage_user') %}
+                            <li><a class="dropdown-item" href="{{ url_for('auth.users') }}">
+                                <i class="bi bi-people"></i> 用户管理
+                            </a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('setting.index') }}">
+                                <i class="bi bi-gear"></i> 系统设置
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                <i class="bi bi-box-arrow-right"></i> 退出登录
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 打印表头（仅在打印时显示） -->
+    <div class="print-header">
+        <div class="unit-name">{{ unit_name or '大理州动物防疫物资管理软件' }}</div>
+        <div class="report-title">{% block print_title %}报表{% endblock %}</div>
+        <div class="report-meta">
+            <span>打印日期：<span id="print-date"></span></span>
+            <span>打印人：{{ current_user.real_name if current_user.is_authenticated else '' }}</span>
+        </div>
+    </div>
+
+    <!-- 打印页脚 -->
+    <div class="print-footer">
+        大理州动物防疫物资管理软件 &nbsp;|&nbsp; 打印时间：<span id="print-date-footer"></span>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置打印时间
+        var now = new Date();
+        var dateStr = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日 ' +
+                      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+        var els = document.querySelectorAll('#print-date, #print-date-footer');
+        els.forEach(function(el) { el.textContent = dateStr; });
+
+        // 统一绑定打印按钮点击事件（备用方案）
+        document.querySelectorAll('.print-btn:not([onclick])').forEach(function(btn) {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                doPrint();
+                return false;
+            };
+        });
+    });
+    </script>
+    {% endif %}
+
+    <!-- 消息提示 -->
+    <div class="container-fluid mt-2">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- 主内容 -->
+    <div class="container-fluid py-3">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- 底部 -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container-fluid text-center text-muted small">
+            大理州动物防疫物资管理软件 v1.0 &copy; {{ now().year if now is defined else '2026' }}
+        </div>
+    </footer>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

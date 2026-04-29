@@ -1,0 +1,104 @@
+{% extends "layout/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clipboard-plus"></i> {{ title }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="checkForm">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.material_id.label(class="form-label") }}
+                        {{ form.material_id(class="form-select", id="materialSelect") }}
+                        {% for e in form.material_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3" id="stockInfo" style="display:none;">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            当前账面库存：<strong id="bookQuantity">0</strong> <span id="unitText"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.actual_quantity.label(class="form-label") }}
+                        {{ form.actual_quantity(class="form-control" + (" is-invalid" if form.actual_quantity.errors else ""), type="number", min=0, id="actualQuantity", placeholder="请输入实际盘点数量") }}
+                        {% for e in form.actual_quantity.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                    </div>
+                    <div class="mb-3" id="diffInfo" style="display:none;">
+                        <div class="alert alert-secondary">
+                            差异：<strong id="diffValue">0</strong>
+                            <small class="text-muted">（实际数量 - 账面数量）</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.remark.label(class="form-label") }}
+                        {{ form.remark(class="form-control", rows=3, placeholder="备注信息（选填）") }}
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('inventory.checks') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> 返回
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const materialSelect = document.getElementById('materialSelect');
+    const stockInfo = document.getElementById('stockInfo');
+    const bookQuantity = document.getElementById('bookQuantity');
+    const unitText = document.getElementById('unitText');
+    const actualQuantity = document.getElementById('actualQuantity');
+    const diffInfo = document.getElementById('diffInfo');
+    const diffValue = document.getElementById('diffValue');
+
+    function loadStockInfo(materialId) {
+        if (!materialId) {
+            stockInfo.style.display = 'none';
+            diffInfo.style.display = 'none';
+            return;
+        }
+        fetch('/inventory/api/material/' + materialId + '/stock')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    bookQuantity.textContent = data.quantity;
+                    unitText.textContent = data.unit ? '(' + data.unit + ')' : '';
+                    stockInfo.style.display = 'block';
+                    calcDiff();
+                }
+            })
+            .catch(function() {
+                stockInfo.style.display = 'none';
+                diffInfo.style.display = 'none';
+            });
+    }
+
+    function calcDiff() {
+        var book = parseInt(bookQuantity.textContent) || 0;
+        var actual = parseInt(actualQuantity.value) || 0;
+        var diff = actual - book;
+        diffValue.textContent = (diff >= 0 ? '+' : '') + diff;
+        diffInfo.style.display = 'block';
+    }
+
+    materialSelect.addEventListener('change', function() {
+        loadStockInfo(this.value);
+    });
+
+    actualQuantity.addEventListener('input', calcDiff);
+
+    // 初始化：如果已有选中值
+    if (materialSelect.value) {
+        loadStockInfo(materialSelect.value);
+    }
+});
+</script>
+{% endblock %}

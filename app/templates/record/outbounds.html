@@ -1,0 +1,105 @@
+{% extends "layout/base.html" %}
+{% block title %}出库记录 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}出库记录{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-upload"></i> 出库记录</h5>
+        <div>
+            <button type="button" onclick="window.print()" class="btn btn-outline-secondary btn-sm print-btn">
+                <i class="bi bi-printer"></i> 打印
+            </button>
+            <a href="{{ url_for('record.outbound_export', date_from=request.args.get('date_from',''), date_to=request.args.get('date_to',''), status=request.args.get('status','')) }}" class="btn btn-outline-success btn-sm no-print">
+                <i class="bi bi-download"></i> 导出
+            </button>
+            <a href="{{ url_for('record.outbound_batch_import') }}" class="btn btn-outline-primary btn-sm no-print">
+                <i class="bi bi-upload"></i> 批量导入
+            </button>
+            <i class="bi bi-plus-circle"></i> 新增出库申请
+        </button>
+    </div>
+    <div class="card-body">
+        <!-- 筛选 -->
+        <form method="GET" class="row g-2 mb-3">
+            <div class="col-md-3">
+                <input type="date" name="date_from" class="form-control" placeholder="开始日期" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <input type="date" name="date_to" class="form-control" placeholder="结束日期" value="{{ date_to }}">
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">全部状态</option>
+                    <option value="pending" {% if status=='pending' %}selected{% endif %}>待审批</option>
+                    <option value="approved" {% if status=='approved' %}selected{% endif %}>已通过</option>
+                    <option value="rejected" {% if status=='rejected' %}selected{% endif %}>已驳回</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="material_id" class="form-select">
+                    <option value="0">全部物资</option>
+                    {% for m in materials %}
+                    <option value="{{ m.id }}" {% if material_id == m.id %}selected{% endif %}>{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> 查询
+                </button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>单号</th>
+                        <th>物资名称</th>
+                        <th>数量</th>
+                        <th>领用单位</th>
+                        <th>状态</th>
+                        <th>申请人</th>
+                        <th>申请时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td><code>{{ r.order_no }}</code></td>
+                        <td>
+                            <a href="{{ url_for('inventory.material_detail', id=r.material_id) }}">{{ r.material.name }}</button>
+                        </td>
+                        <td class="fw-bold">{{ r.quantity }}{{ r.material.unit }}</td>
+                        <td>{{ r.recipient }}</td>
+                        <td><span class="badge bg-{{ r.status_color }}">{{ r.status_name }}</span></td>
+                        <td>{{ r.applicant.real_name }}</td>
+                        <td><small>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                        <td>
+                            <a href="{{ url_for('record.outbound_detail', id=r.id) }}" class="btn btn-sm btn-outline-info" title="查看详情">
+                                <i class="bi bi-eye"></i> 详情
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无出库记录</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center">
+                {% for p in range(1, pagination.pages+1) %}
+                <li class="page-item {{ 'active' if p==pagination.page }}">
+                    <a class="page-link" href="{{ url_for('record.outbounds', page=p, status=status, date_from=date_from, date_to=date_to, material_id=material_id) }}">{{ p }}</button>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

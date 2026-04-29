@@ -1,0 +1,92 @@
+{% extends "layout/base.html" %}
+{% block title %}审批出库 - {{ record.order_no }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> 出库申请详情</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered mb-0">
+                    <tr>
+                        <th class="w-25 bg-light">单号</th>
+                        <td><code>{{ record.order_no }}</code></td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">物资</th>
+                        <td>{{ record.material.name }} ({{ record.material.spec or '-' }})</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">申请数量</th>
+                        <td class="fw-bold">{{ record.quantity }} {{ record.material.unit }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">当前库存</th>
+                        <td class="fw-bold {% if record.quantity > record.material.current_quantity %}text-danger{% else %}text-success{% endif %}">
+                            {{ record.material.current_quantity }} {{ record.material.unit }}
+                            {% if record.quantity > record.material.current_quantity %}
+                            <span class="badge bg-danger">库存不足</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">领用单位</th>
+                        <td>{{ record.recipient }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">用途</th>
+                        <td>{{ record.purpose or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">申请人</th>
+                        <td>{{ record.applicant.real_name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">申请时间</th>
+                        <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">备注</th>
+                        <td>{{ record.remark or '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-check-circle"></i> 审批操作</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.action.label(class="form-label fw-bold") }}
+                        <div class="d-flex gap-3 mt-1">
+                            {% for subfield in form.action %}
+                            <div class="form-check form-check-inline">
+                                {{ subfield(class="form-check-input") }}
+                                {{ subfield.label(class="form-check-label") }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% for e in form.action.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.remark.label(class="form-label") }}
+                        {{ form.remark(class="form-control", rows=3, placeholder="请输入审批意见...") }}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('record.pending_approvals') }}" class="btn btn-secondary">返回</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

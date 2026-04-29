@@ -1,0 +1,86 @@
+{% extends "layout/base.html" %}
+{% block title %}库存预警 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}库存预警{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-exclamation-triangle text-warning"></i> 库存预警
+            <small class="text-muted fs-6 ms-2">仅显示库存低于预警值的物资</small>
+        </h5>
+            <a href="javascript:window.print()" class="btn btn-outline-secondary btn-sm print-btn me-1">
+                <i class="bi bi-printer"></i> 打印
+            </button>
+            <a href="{{ url_for('report.stock') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-box-seam"></i> 查看全部库存
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>编码</th>
+                        <th>物资名称</th>
+                        <th>分类</th>
+                        <th>规格</th>
+                        <th>单位</th>
+                        <th>当前库存</th>
+                        <th>预警值</th>
+                        <th>建议补货量</th>
+                        <th>库存状态</th>
+                        <th>临期状态</th>
+                        <th>存放位置</th>
+                        <th>单价(元)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in materials %}
+                    {% set suggest_replenish = (m.warning_quantity - m.current_quantity) if m.warning_quantity > m.current_quantity else 0 %}
+                    <tr class="{{ 'table-danger' if m.stock_status == 'emergency' else 'table-warning' }}">
+                        <td><code>{{ m.code or '-' }}</code></td>
+                        <td>
+                            <a href="{{ url_for('inventory.material_detail', id=m.id) }}">{{ m.name }}</button>
+                        </td>
+                        <td>{{ m.category.full_name if m.category else '-' }}</td>
+                        <td>{{ m.spec or '-' }}</td>
+                        <td>{{ m.unit }}</td>
+                        <td class="fw-bold">{{ m.current_quantity }}</td>
+                        <td>{{ m.warning_quantity }}</td>
+                        <td class="fw-bold text-danger">{{ suggest_replenish }} {{ m.unit }}</td>
+                        <td><span class="badge bg-{{ m.stock_status_color }}">{{ m.stock_status_name }}</span></td>
+                        <td>
+                            {% if m.newest_expiry_date and m.warning_days > 0 %}
+                                <span class="badge bg-{{ m.expiry_status_color }}">{{ m.expiry_status_name }}</span>
+                                <small class="text-muted d-block">{{ m.newest_expiry_date }}</small>
+                            {% else %}
+                                <span class="badge bg-secondary">未设置</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ m.storage_location or '-' }}</td>
+                        <td>{{ m.unit_price or 0 }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="12" class="text-center text-muted py-5">
+                        <i class="bi bi-check-circle text-success fs-3 d-block mb-2"></i>
+                        所有物资库存正常，暂无预警
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center">
+                {% for p in range(1, pagination.pages+1) %}
+                <li class="page-item {{ 'active' if p==pagination.page }}">
+                    <a class="page-link" href="{{ url_for('report.stock_warnings', page=p) }}">{{ p }}</button>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "layout/base.html" %}
+{% block title %}待审批出库{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> 待审批出库申请</h5>
+        <span class="badge bg-warning rounded-pill fs-6">{{ pagination.total if pagination else 0 }} 条待审批</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>单号</th>
+                        <th>物资名称</th>
+                        <th>数量</th>
+                        <th>领用单位</th>
+                        <th>状态</th>
+                        <th>申请人</th>
+                        <th>申请时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td><code>{{ r.order_no }}</code></td>
+                        <td>
+                            <a href="{{ url_for('inventory.material_detail', id=r.material_id) }}">{{ r.material.name }}</a>
+                        </td>
+                        <td class="fw-bold">{{ r.quantity }}{{ r.material.unit }}</td>
+                        <td>{{ r.recipient }}</td>
+                        <td><span class="badge bg-{{ r.status_color }}">{{ r.status_name }}</span></td>
+                        <td>{{ r.applicant.real_name }}</td>
+                        <td><small>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                        <td>
+                            <a href="{{ url_for('record.outbound_approve', id=r.id) }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-check-circle"></i> 审批
+                            </a>
+                            <a href="{{ url_for('record.outbound_detail', id=r.id) }}" class="btn btn-sm btn-outline-info" title="查看详情">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">暂无待审批记录</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center">
+                {% for p in range(1, pagination.pages+1) %}
+                <li class="page-item {{ 'active' if p==pagination.page }}">
+                    <a class="page-link" href="{{ url_for('record.pending_approvals', page=p) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

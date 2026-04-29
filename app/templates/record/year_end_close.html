@@ -1,0 +1,120 @@
+{% extends "layout/base.html" %}
+{% block title %}年度结转 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}年度结转{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-7 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-check"></i> 年度结转</h5>
+            </div>
+            <div class="card-body">
+                {% if current_year in closed_years %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    {{ current_year }}年度已经完成结转。
+                </div>
+                {% endif %}
+
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-exclamation-triangle"></i> 结转说明</h6>
+                    <ul class="mb-0 small">
+                        <li>年度结转将当前所有<strong>活跃物资</strong>的库存数据生成快照保存</li>
+                        <li>结转完成后可随时查看历史年度库存状况</li>
+                        <li>同一年份<strong>只能结转一次</strong></li>
+                        <li>可选择将<strong>已过期</strong>物资自动冻结（禁用）</li>
+                    </ul>
+                </div>
+
+                <!-- 当前库存概览 -->
+                <h6 class="border-bottom pb-2">当前库存概览（{{ current_year }}年）</h6>
+                <div class="row text-center mb-3">
+                    <div class="col-3">
+                        <h4 class="fw-bold text-primary">{{ total_materials }}</h4>
+                        <small>物资种类</small>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="fw-bold text-info">{{ total_stock }}</h4>
+                        <small>库存总数量</small>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="fw-bold text-success">{{ "%.2f"|format(total_value) }}</h4>
+                        <small>库存总价值(元)</small>
+                    </div>
+                    <div class="col-3">
+                        <h4 class="fw-bold text-{{ 'danger' if expired_count > 0 else 'secondary' }}">{{ expired_count }}</h4>
+                        <small>已过期物资</small>
+                    </div>
+                </div>
+
+                {% if current_year not in closed_years %}
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="year" value="{{ current_year }}">
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="freeze_expired" class="form-check-input" id="freezeExpired" checked>
+                        <label class="form-check-label" for="freezeExpired">
+                            冻结过期物资（将已过期物资自动禁用）
+                            {% if expired_count > 0 %}
+                            <span class="text-danger">（当前有 {{ expired_count }} 种物资已过期）</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">结转备注</label>
+                        <textarea name="remark" class="form-control" rows="2" placeholder="可选：填写结转说明">{{ current_year }}年度库存结转</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('确定执行 {{ current_year }} 年度结转吗？此操作不可撤销！')">
+                        <i class="bi bi-calendar-check"></i> 执行 {{ current_year }} 年度结转
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> 历史结转记录</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if close_history %}
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>年份</th>
+                            <th>结转时间</th>
+                            <th>物资数</th>
+                            <th>总数量</th>
+                            <th>已过期</th>
+                            <th>操作人</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in close_history %}
+                        <tr>
+                            <td class="fw-bold">{{ c.year }}</td>
+                            <td><small>{{ c.created_at.strftime('%Y-%m-%d') }}</small></td>
+                            <td>{{ c.total_materials }}</td>
+                            <td>{{ c.total_quantity }}</td>
+                            <td>
+                                {% if c.expired_count > 0 %}
+                                <span class="text-danger">{{ c.expired_count }}</span>
+                                {% else %}
+                                <span class="text-muted">0</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ c.operator.real_name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="p-4 text-center text-muted">暂无结转记录</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
