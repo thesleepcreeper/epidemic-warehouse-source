@@ -1,0 +1,191 @@
+{% extends "layout/base.html" %}
+{% block title %}协议详情 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}协议储备详情{% endblock %}
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-8">
+        <h4 class="border-bottom pb-2">
+            <i class="bi bi-file-text"></i> 协议详情
+            <small class="text-muted"><code>{{ agreement.agreement_no }}</code></small>
+        </h4>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('agreement.agreement_list') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-list"></i> 返回列表
+        </a>
+        {% if current_user.role == 'admin' and agreement.status == 'active' %}
+        <a href="{{ url_for('agreement.agreement_edit', id=agreement.id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil"></i> 编辑
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- 基本信息 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> 基本信息
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted" style="width:120px;">协议编号</td>
+                        <td class="fw-bold"><code>{{ agreement.agreement_no }}</code></td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">状态</td>
+                        <td>
+                            {% if agreement.status == 'active' %}
+                            <span class="badge bg-success">{{ agreement.status_name }}</span>
+                            {% elif agreement.status == 'expired' %}
+                            <span class="badge bg-secondary">{{ agreement.status_name }}</span>
+                            {% elif agreement.status == 'terminated' %}
+                            <span class="badge bg-danger">{{ agreement.status_name }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">关联物资</td>
+                        <td>
+                            {% if agreement.material %}
+                            <a href="{{ url_for('inventory.material_detail', id=agreement.material.id) }}">{{ agreement.material.name }}</a>
+                            <small class="text-muted">({{ agreement.material.spec or '-' }})</small>
+                            {% else %}
+                            <span class="text-muted">已删除</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">供应商</td>
+                        <td>{{ agreement.supplier.name if agreement.supplier else '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">物资单位</td>
+                        <td>{{ agreement.material.unit if agreement.material else '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 储备信息 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-box-seam"></i> 储备信息
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted" style="width:120px;">协议储备数量</td>
+                        <td class="fw-bold fs-5">{{ agreement.agree_quantity }}{{ agreement.material.unit if agreement.material else '' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">协议单价</td>
+                        <td>{{ '%.2f' | format(agreement.unit_price) }} 元</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">协议总金额</td>
+                        <td class="fw-bold">{{ '%.2f' | format(agreement.total_amount) }} 元</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">供货响应天数</td>
+                        <td>{{ agreement.delivery_lead_days }} 天</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">剩余天数</td>
+                        <td>
+                            {% if agreement.remaining_days is not none %}
+                                {% if agreement.remaining_days < 0 %}
+                                    <span class="text-danger fw-bold">已过期 {{ -agreement.remaining_days }} 天</span>
+                                {% elif agreement.remaining_days <= 30 %}
+                                    <span class="text-warning fw-bold">{{ agreement.remaining_days }} 天</span>
+                                {% else %}
+                                    <span class="text-success">{{ agreement.remaining_days }} 天</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 有效期 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-calendar3"></i> 有效期
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted" style="width:120px;">生效日期</td>
+                        <td class="fw-bold">{{ agreement.start_date }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">截止日期</td>
+                        <td class="fw-bold">{{ agreement.end_date }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 联系信息 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-person-lines-fill"></i> 联系信息
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted" style="width:120px;">联系人</td>
+                        <td>{{ agreement.contact_person or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">联系电话</td>
+                        <td>{{ agreement.contact_phone or '-' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 备注 -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-journal-text"></i> 备注
+            </div>
+            <div class="card-body">
+                {% if agreement.remark %}
+                <pre class="mb-0" style="white-space: pre-wrap;">{{ agreement.remark }}</pre>
+                {% else %}
+                <span class="text-muted">无备注</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统信息 -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history"></i> 系统信息
+            </div>
+            <div class="card-body">
+                <div class="row text-muted small">
+                    <div class="col-md-4">创建时间：{{ agreement.created_at.strftime('%Y-%m-%d %H:%M:%S') if agreement.created_at else '-' }}</div>
+                    <div class="col-md-4">更新时间：{{ agreement.updated_at.strftime('%Y-%m-%d %H:%M:%S') if agreement.updated_at else '-' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

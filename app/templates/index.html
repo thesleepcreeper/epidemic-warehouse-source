@@ -71,6 +71,18 @@
             </div>
         </div>
     </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-success h-100">
+            <div class="card-body text-center">
+                <h5 class="card-title text-success">
+                    <i class="bi bi-file-text"></i> 协议储备
+                </h5>
+                <p class="display-6 fw-bold text-success">{{ active_agreement_count }}</p>
+                <small class="text-muted">{{ agreement_reserve_total }} 件储备量</small>
+                <br><a href="{{ url_for('agreement.agreement_list') }}" class="small">查看详情</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">

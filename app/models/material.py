@@ -161,3 +161,42 @@ class Material(db.Model):
 
     def __repr__(self):
         return f'<Material {self.name}>'
+
+
+class AgreementReserve(db.Model):
+    """协议储备 - 与供应商签订供货协议，物资不实际存储在仓库中"""
+    __tablename__ = 'agreement_reserves'
+
+    id = db.Column(db.Integer, primary_key=True)
+    agreement_no = db.Column(db.String(64), unique=True, nullable=False, comment='协议编号')
+    material_id = db.Column(db.Integer, db.ForeignKey('materials.id'), nullable=False, comment='关联物资')
+    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=False, comment='供应商')
+    agree_quantity = db.Column(db.Integer, nullable=False, comment='协议储备数量')
+    unit_price = db.Column(db.Numeric(10, 2), default=0, comment='协议单价')
+    total_amount = db.Column(db.Numeric(12, 2), default=0, comment='协议总金额')
+    start_date = db.Column(db.Date, nullable=False, comment='协议生效日期')
+    end_date = db.Column(db.Date, nullable=False, comment='协议截止日期')
+    delivery_lead_days = db.Column(db.Integer, default=7, comment='供货响应天数')
+    contact_person = db.Column(db.String(64), comment='供应商联系人')
+    contact_phone = db.Column(db.String(20), comment='联系电话')
+    status = db.Column(db.String(20), default='active', comment='状态: active/expired/terminated')
+    remark = db.Column(db.Text, comment='备注')
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    material = db.relationship('Material', backref='agreement_reserves')
+    supplier = db.relationship('Supplier', backref='agreement_reserves')
+
+    @property
+    def status_name(self):
+        return {'active': '生效中', 'expired': '已到期', 'terminated': '已终止'}.get(self.status, self.status)
+
+    @property
+    def remaining_days(self):
+        if not self.end_date:
+            return None
+        from datetime import date
+        return (self.end_date - date.today()).days
+
+    def __repr__(self):
+        return f'<AgreementReserve {self.agreement_no}>'

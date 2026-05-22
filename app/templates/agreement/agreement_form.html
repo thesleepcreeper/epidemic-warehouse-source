@@ -1,0 +1,123 @@
+{% extends "layout/base.html" %}
+{% block title %}{{ title }} - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <h4 class="border-bottom pb-2">
+            <i class="bi bi-file-text"></i> {{ title }}
+        </h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.agreement_no.label }} <span class="text-danger">*</span></label>
+                            {{ form.agreement_no(class="form-control" + (" is-invalid" if form.agreement_no.errors else ""), placeholder="如不填写将自动生成") }}
+                            {% for error in form.agreement_no.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.material_id.label }} <span class="text-danger">*</span></label>
+                            {{ form.material_id(class="form-select" + (" is-invalid" if form.material_id.errors else "")) }}
+                            {% for error in form.material_id.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.supplier_id.label }} <span class="text-danger">*</span></label>
+                            {{ form.supplier_id(class="form-select" + (" is-invalid" if form.supplier_id.errors else "")) }}
+                            {% for error in form.supplier_id.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.agree_quantity.label }} <span class="text-danger">*</span></label>
+                            {{ form.agree_quantity(class="form-control" + (" is-invalid" if form.agree_quantity.errors else "")) }}
+                            {% for error in form.agree_quantity.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ form.unit_price.label }}</label>
+                            {{ form.unit_price(class="form-control" + (" is-invalid" if form.unit_price.errors else "")) }}
+                            <small class="text-muted">协议供货单价</small>
+                            {% for error in form.unit_price.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.start_date.label }} <span class="text-danger">*</span></label>
+                            {{ form.start_date(class="form-control" + (" is-invalid" if form.start_date.errors else ""), type="date") }}
+                            {% for error in form.start_date.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.end_date.label }} <span class="text-danger">*</span></label>
+                            {{ form.end_date(class="form-control" + (" is-invalid" if form.end_date.errors else ""), type="date") }}
+                            {% for error in form.end_date.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ form.delivery_lead_days.label }}</label>
+                            {{ form.delivery_lead_days(class="form-control" + (" is-invalid" if form.delivery_lead_days.errors else "")) }}
+                            <small class="text-muted">签订协议后多少天供货</small>
+                            {% for error in form.delivery_lead_days.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.contact_person.label }}</label>
+                            {{ form.contact_person(class="form-control" + (" is-invalid" if form.contact_person.errors else "")) }}
+                            {% for error in form.contact_person.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.contact_phone.label }}</label>
+                            {{ form.contact_phone(class="form-control" + (" is-invalid" if form.contact_phone.errors else "")) }}
+                            {% for error in form.contact_phone.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.remark.label }}</label>
+                        {{ form.remark(class="form-control" + (" is-invalid" if form.remark.errors else ""), rows=3) }}
+                        {% for error in form.remark.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('agreement.agreement_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> 返回列表
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

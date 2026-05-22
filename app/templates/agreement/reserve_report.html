@@ -1,0 +1,125 @@
+{% extends "layout/base.html" %}
+{% block title %}储备总览 - 大理州动物防疫物资管理软件{% endblock %}
+{% block print_title %}储备总览报表{% endblock %}
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-8">
+        <h4 class="border-bottom pb-2">
+            <i class="bi bi-graph-up"></i> 储备总览
+            <small class="text-muted">实物储备 + 协议储备 = 总储备能力</small>
+        </h4>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('agreement.agreement_list') }}" class="btn btn-outline-primary">
+            <i class="bi bi-file-text"></i> 协议列表
+        </a>
+        <button class="btn btn-outline-secondary print-btn" onclick="doPrint()">
+            <i class="bi bi-printer"></i> 打印
+        </button>
+    </div>
+</div>
+
+<!-- 汇总统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-primary h-100">
+            <div class="card-body text-center">
+                <h6 class="card-title text-primary">
+                    <i class="bi bi-box-seam"></i> 实物储备总量
+                </h6>
+                <p class="display-6 fw-bold text-primary">{{ total_physical }}</p>
+                <small class="text-muted">仓库实际库存</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-success h-100">
+            <div class="card-body text-center">
+                <h6 class="card-title text-success">
+                    <i class="bi bi-file-text"></i> 协议储备总量
+                </h6>
+                <p class="display-6 fw-bold text-success">{{ total_agreement }}</p>
+                <small class="text-muted">生效中协议可调用</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-info h-100">
+            <div class="card-body text-center">
+                <h6 class="card-title text-info">
+                    <i class="bi bi-database"></i> 总储备能力
+                </h6>
+                <p class="display-6 fw-bold text-info">{{ total_reserve }}</p>
+                <small class="text-muted">实物 + 协议</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card border-warning h-100">
+            <div class="card-body text-center">
+                <h6 class="card-title text-warning">
+                    <i class="bi bi-file-earmark-text"></i> 生效中协议
+                </h6>
+                <p class="display-6 fw-bold text-warning">{{ active_agreements_count }}</p>
+                <small class="text-muted">份协议</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 明细表 -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-ul"></i> 各物资储备明细</span>
+        <span class="small text-muted">仅显示已启用的物资</span>
+    </div>
+    <div class="card-body p-0">
+        {% if report_data %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>物资名称</th>
+                        <th>规格型号</th>
+                        <th>单位</th>
+                        <th class="text-end">实物库存</th>
+                        <th class="text-end">协议储备</th>
+                        <th class="text-end">总储备</th>
+                        <th>物资分类</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report_data %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('inventory.material_detail', id=item.material.id) }}">{{ item.material.name }}</a>
+                        </td>
+                        <td>{{ item.material.spec or '-' }}</td>
+                        <td>{{ item.material.unit }}</td>
+                        <td class="text-end">{{ item.physical_quantity }}</td>
+                        <td class="text-end">{{ item.agreement_quantity }}</td>
+                        <td class="text-end fw-bold">{{ item.total_quantity }}</td>
+                        <td>{{ item.material.category.full_name if item.material.category else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="3">合计</td>
+                        <td class="text-end">{{ total_physical }}</td>
+                        <td class="text-end">{{ total_agreement }}</td>
+                        <td class="text-end">{{ total_reserve }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+            <p class="mt-2">暂无物资数据，请先添加物资</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

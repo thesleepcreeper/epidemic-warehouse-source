@@ -59,6 +59,7 @@ def create_app(config_class=None):
     from app.routes.report_routes import report_bp
     from app.routes.main_routes import main_bp
     from app.routes.setting_routes import setting_bp
+    from app.routes.agreement_routes import agreement_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(inventory_bp, url_prefix='/inventory')
@@ -66,6 +67,7 @@ def create_app(config_class=None):
     app.register_blueprint(report_bp, url_prefix='/report')
     app.register_blueprint(main_bp)
     app.register_blueprint(setting_bp)
+    app.register_blueprint(agreement_bp)
 
     # 错误处理
     @app.errorhandler(404)

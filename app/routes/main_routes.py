@@ -15,8 +15,9 @@ main_bp = Blueprint('main', __name__)
 def index():
     """仪表盘首页"""
     from app import db
-    from app.models.material import Material, Category
+    from app.models.material import Material, Category, AgreementReserve
     from app.models.record import InboundRecord, OutboundRecord
+    from datetime import date
 
     # 统计数据
     total_materials = Material.query.filter_by(is_active=True).count()
@@ -30,6 +31,14 @@ def index():
     # 临期预警
     expiring_materials = [m for m in all_materials if m.expiry_status == 'warning']
     expired_materials = [m for m in all_materials if m.expiry_status == 'expired']
+
+    # 协议储备统计
+    active_agreements = AgreementReserve.query.filter(
+        AgreementReserve.status == 'active',
+        AgreementReserve.end_date >= date.today(),
+    ).all()
+    active_agreement_count = len(active_agreements)
+    agreement_reserve_total = sum(a.agree_quantity for a in active_agreements)
 
     # 本月出入库统计
     today = datetime.now()
@@ -65,4 +74,6 @@ def index():
                            monthly_outbound=monthly_outbound,
                            pending_outbounds=pending_outbounds,
                            recent_inbounds=recent_inbounds,
-                           recent_outbounds=recent_outbounds)
+                           recent_outbounds=recent_outbounds,
+                           active_agreement_count=active_agreement_count,
+                           agreement_reserve_total=agreement_reserve_total)

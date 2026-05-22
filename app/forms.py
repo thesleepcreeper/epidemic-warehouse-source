@@ -114,3 +114,20 @@ class InventoryCheckForm(FlaskForm):
     actual_quantity = IntegerField('实际数量', validators=[DataRequired('请输入实际数量'), NumberRange(0, 999999)])
     remark = TextAreaField('备注', validators=[Optional(), Length(0, 500)])
     submit = SubmitField('确认盘点')
+
+
+# ========== 协议储备表单 ==========
+
+class AgreementForm(FlaskForm):
+    agreement_no = StringField('协议编号', validators=[DataRequired('请输入协议编号'), Length(1, 64)])
+    material_id = SelectField('物资', coerce=int, validators=[DataRequired('请选择物资')])
+    supplier_id = SelectField('供应商', coerce=int, validators=[DataRequired('请选择供应商')])
+    agree_quantity = IntegerField('协议储备数量', validators=[DataRequired('请输入数量'), NumberRange(1, 999999, '数量必须大于0')])
+    unit_price = FloatField('协议单价(元)', default=0, validators=[Optional(), NumberRange(0, 999999)])
+    start_date = DateField('生效日期', format='%Y-%m-%d', validators=[DataRequired('请选择生效日期')])
+    end_date = DateField('截止日期', format='%Y-%m-%d', validators=[DataRequired('请选择截止日期')])
+    delivery_lead_days = IntegerField('供货响应天数', default=7, validators=[Optional(), NumberRange(1, 365)])
+    contact_person = StringField('供应商联系人', validators=[Optional(), Length(0, 64)])
+    contact_phone = StringField('联系电话', validators=[Optional(), Length(0, 20)])
+    remark = TextAreaField('备注', validators=[Optional(), Length(0, 1000)])
+    submit = SubmitField('保存')

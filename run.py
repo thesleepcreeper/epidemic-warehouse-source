@@ -32,7 +32,7 @@ def start_flask_app(port):
     """启动 Flask 服务"""
     from app import create_app, db
     from app.models.user import User
-    from app.models.material import Category, Supplier, Material
+    from app.models.material import Category, Supplier, Material, AgreementReserve
     from app.models.record import InboundRecord, OutboundRecord, InventoryCheck
 
     app = create_app()
